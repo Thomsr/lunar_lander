@@ -1,0 +1,23 @@
+# known-working dependency set for this project --> verified (by me) with python 3.10.20.
+#
+# Windows note:
+# gymnasium box2d env depend on box2d-py, which may need to be built locally. 
+# if installation fails on windows, install SWIG first and make sure the Microsoft C++ Build Tools are available.
+#
+# suggested install sequence on windows:
+#   pip install swig==4.4.1
+#   pip install -r requirements-pinned.txt
+
+pygame==2.1.0
+pyglet==1.5.21
+matplotlib==3.10.9
+numpy==1.26.4
+scipy==1.15.3
+scikit-learn==1.7.2
+sympy==1.14.0
+joblib==1.5.3
+torch==2.11.0
+notebook==7.5.6
+swig==4.4.1
+box2d-py==2.3.5
+gymnasium[box2d]==0.26.2
