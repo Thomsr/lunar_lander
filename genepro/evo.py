@@ -13,6 +13,14 @@ from genepro.node import Node
 from genepro.variation import *
 from genepro.selection import tournament_selection
 
+def _seeded_generate_random_multitree(seed, *args, **kwargs):
+  np.random.seed(seed)
+  return generate_random_multitree(*args, **kwargs)
+
+def _seeded_generate_offspring(seed, *args, **kwargs):
+    np.random.seed(seed)
+    return generate_offspring(*args, **kwargs)
+
 class Evolution:
   """
   Class concerning the overall evolution process.
@@ -111,6 +119,7 @@ class Evolution:
     # other
     n_jobs : int=4,
     verbose : bool=False,
+    seed: int = 42,
     init_method : str="biased",
     ):
 
@@ -135,6 +144,7 @@ class Evolution:
     self.num_evals = 0
     self.start_time, self.elapsed_time = 0, 0
     self.best_of_gens = list()
+    self.seed = int(seed)
 
     self.memory = None
 
@@ -187,15 +197,15 @@ class Evolution:
       init_schedule = self._build_ramped_half_and_half_schedule()
       # schedule contains tuples (depth, mode) where mode is 'full' or 'grow'
       self.population = Parallel(n_jobs=self.n_jobs)(
-          delayed(generate_random_multitree)(self.n_trees,
+          delayed(_seeded_generate_random_multitree)(self.seed + idx, self.n_trees,
             self.internal_nodes, self.leaf_nodes, max_depth=depth, mode=("full" if mode=="full" else "grow"))
-          for depth, mode in init_schedule)
+          for idx, (depth, mode) in enumerate(init_schedule))
     elif self.init_method in ("random", "biased", "grow", "full"):
       mode = self.init_method if self.init_method in ("grow", "full") else "biased"
       self.population = Parallel(n_jobs=self.n_jobs)(
-          delayed(generate_random_multitree)(self.n_trees,
+          delayed(_seeded_generate_random_multitree)(self.seed + idx, self.n_trees,
             self.internal_nodes, self.leaf_nodes, max_depth=self.init_max_depth, mode=mode)
-          for _ in range(self.pop_size))
+          for idx in range(self.pop_size))
     else:
       raise ValueError("Unrecognized init_method: {}".format(self.init_method))
 
@@ -229,11 +239,11 @@ class Evolution:
     sel_fun = self.selection["fun"]
     parents = sel_fun(self.population, self.pop_size, **self.selection["kwargs"])
     # generate offspring
-    offspring_population = Parallel(n_jobs=self.n_jobs)(delayed(generate_offspring)
-      (t, self.crossovers, self.mutations, self.coeff_opts, 
+    offspring_population = Parallel(n_jobs=self.n_jobs)(delayed(_seeded_generate_offspring)
+      (self.seed + self.num_evals + idx, t, self.crossovers, self.mutations, self.coeff_opts,
       parents, self.internal_nodes, self.leaf_nodes,
       constraints={"max_tree_size": self.max_tree_size}) 
-      for t in parents)
+      for idx, t in enumerate(parents))
 
     # evaluate each offspring and store its fitness 
     fitnesses = Parallel(n_jobs=self.n_jobs)(delayed(self.fitness_function)(t) for t in offspring_population)

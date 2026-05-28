@@ -58,8 +58,7 @@ def fitness_function_pt(multitree, num_episodes=5, episode_duration=300, render=
         frames.append(env.render())
 
       input_sample = torch.from_numpy(observation.reshape((1,-1))).float()
-      
-      # what goes here? TODO
+
       action = torch.argmax(multitree.get_output_pt(input_sample))
       observation, reward, terminated, truncated, info = env.step(action.item())
       rewards.append(reward)
