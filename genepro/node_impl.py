@@ -248,10 +248,12 @@ class Abs(Node):
     return self._get_typical_repr(args,'before')
   
   def get_output(self, X):
-    return np.abs(self._get_child_outputs(X))
-  
+    c_outs = self._get_child_outputs(X)
+    return np.abs(c_outs[0])
+
   def get_output_pt(self, X):
-    return np.abs(self._get_child_outputs_pt(X))
+      c_outs = self._get_child_outputs_pt(X)
+      return torch.abs(c_outs[0])
   
 class IfGt(Node):
   def __init__(self):
@@ -262,19 +264,27 @@ class IfGt(Node):
   def _get_args_repr(self, args):
     return self._get_typical_repr(args,'before')
   
+  # def get_output(self, X):
+  #   c_outs = self._get_child_outputs(X)
+  #   if c_outs[0] > c_outs[1]:
+  #     return c_outs[2]
+  #   else:
+  #     return c_outs[3]
+  
+  # def get_output_pt(self, X):
+  #   c_outs = self._get_child_outputs_pt(X)
+  #   if c_outs[0] > c_outs[1]:
+  #     return c_outs[2]
+  #   else:
+  #     return c_outs[3]
+
   def get_output(self, X):
     c_outs = self._get_child_outputs(X)
-    if c_outs[0] > c_outs[1]:
-      return c_outs[2]
-    else:
-      return c_outs[3]
-  
+    return np.where(c_outs[0] > c_outs[1], c_outs[2], c_outs[3])
+
   def get_output_pt(self, X):
-    c_outs = self._get_child_outputs_pt(X)
-    if c_outs[0] > c_outs[1]:
-      return c_outs[2]
-    else:
-      return c_outs[3]
+      c_outs = self._get_child_outputs_pt(X)
+      return torch.where(c_outs[0] > c_outs[1], c_outs[2], c_outs[3])
     
 class Tanh(Node):
   def __init__(self):
