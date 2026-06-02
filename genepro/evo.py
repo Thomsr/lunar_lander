@@ -72,6 +72,8 @@ class Evolution:
   verbose : bool, optional
     whether to log information during the evolution (default is False)
 
+  elite_archive_size : int, optional
+    size of the elite archive to maintain (default is 0, no archive); set > 0 to enable elitist selection
   init_method : str, optional
     initialization strategy to use for the starting population; either "ramped_half_and_half"
     (default) or "random"
@@ -97,6 +99,9 @@ class Evolution:
 
   best_of_gens : list
     list containing the best-found tree in each generation; note that the entry at index 0 is the best at initialization
+
+  elite_archive : list
+    list of elite individuals maintained across generations; sorted by fitness (descending)
   """
   def __init__(self,
     # required settings
@@ -119,6 +124,7 @@ class Evolution:
     # other
     n_jobs : int=4,
     verbose : bool=False,
+    elite_archive_size : int=8,
     seed : int=42,
     init_method : str="biased",
     ):
@@ -144,6 +150,7 @@ class Evolution:
     self.num_evals = 0
     self.start_time, self.elapsed_time = 0, 0
     self.best_of_gens = list()
+    self.elite_archive = list()  # archive for elite individuals
     self.seed = int(seed)
 
     self.memory = None
@@ -168,6 +175,27 @@ class Evolution:
 
     shuffle(schedule)
     return schedule
+
+
+  def _update_elite_archive(self, candidates):
+    """
+    Updates the elite archive with promising candidates.
+    
+    Parameters
+    ----------
+    candidates : list
+      list of individuals with fitness attribute to consider for the archive
+    """
+    if self.elite_archive_size <= 0:
+      return
+    
+    # Add new candidates to archive
+    for individual in candidates:
+      self.elite_archive.append(deepcopy(individual))
+    
+    # Sort by fitness (descending - higher is better) and keep top elite_archive_size
+    self.elite_archive.sort(key=lambda x: x.fitness, reverse=True)
+    self.elite_archive = self.elite_archive[:self.elite_archive_size]
 
 
   def _must_terminate(self) -> bool:
@@ -231,14 +259,17 @@ class Evolution:
     # store best at initialization
     best = self.population[np.argmax([t.fitness for t in self.population])]
     self.best_of_gens.append(deepcopy(best))
+    # update elite archive with initial population
+    self._update_elite_archive(self.population)
 
   def _perform_generation(self):
     """
     Performs one generation, which consists of parent selection, offspring generation, and fitness evaluation
     """
-    # select promising parents
+    # select promising parents (from population only)
+    selection_pool = self.population
     sel_fun = self.selection["fun"]
-    parents = sel_fun(self.population, self.pop_size, **self.selection["kwargs"])
+    parents = sel_fun(selection_pool, self.pop_size, **self.selection["kwargs"])
     # generate offspring
     offspring_population = Parallel(n_jobs=self.n_jobs)(delayed(_seeded_generate_offspring)
       (self.seed + self.num_evals + idx, t, self.crossovers, self.mutations, self.coeff_opts, 
@@ -262,9 +293,16 @@ class Evolution:
       offspring_population[i].fitness = fitnesses[i]
     # store cost
     self.num_evals += self.pop_size
-    # update the population for the next iteration
-    self.population = offspring_population
-    # update info
+    
+    if self.elite_archive_size > 0 and len(self.elite_archive) > 0:
+      combined = offspring_population + self.elite_archive
+      combined.sort(key=lambda x: x.fitness, reverse=True)
+      self.population = combined[:self.pop_size]
+    else:
+      self.population = offspring_population
+    
+    self._update_elite_archive(self.population)
+    
     self.num_gens += 1
     best = self.population[np.argmax([t.fitness for t in self.population])]
     self.best_of_gens.append(deepcopy(best))
