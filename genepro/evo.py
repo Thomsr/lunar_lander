@@ -197,22 +197,6 @@ class Evolution:
     self.elite_archive.sort(key=lambda x: x.fitness, reverse=True)
     self.elite_archive = self.elite_archive[:self.elite_archive_size]
 
-  def _get_selection_pool(self):
-    """
-    Creates a selection pool that includes both population and elite archive.
-    
-    Returns
-    -------
-    list
-      combined population and elite archive
-    """
-    if self.elite_archive_size <= 0:
-      return self.population
-    
-    # Combine population and elite archive for selection
-    combined_pool = self.population + self.elite_archive
-    return combined_pool
-
 
   def _must_terminate(self) -> bool:
     """
@@ -310,7 +294,6 @@ class Evolution:
     # store cost
     self.num_evals += self.pop_size
     
-    # Apply elitism: merge offspring with elite archive and keep best pop_size
     if self.elite_archive_size > 0 and len(self.elite_archive) > 0:
       combined = offspring_population + self.elite_archive
       combined.sort(key=lambda x: x.fitness, reverse=True)
@@ -318,10 +301,8 @@ class Evolution:
     else:
       self.population = offspring_population
     
-    # update elite archive with the new population
     self._update_elite_archive(self.population)
     
-    # update info
     self.num_gens += 1
     best = self.population[np.argmax([t.fitness for t in self.population])]
     self.best_of_gens.append(deepcopy(best))
