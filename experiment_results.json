@@ -1,0 +1,277 @@
+{
+  "548c912c066760ac858776d54141538a": {
+    "internal_nodes": [
+      "Plus",
+      "Minus",
+      "Times",
+      "Sqrt",
+      "Log",
+      "Sin",
+      "Max",
+      "Tanh"
+    ],
+    "leaf_nodes": [
+      "Feature",
+      "Feature",
+      "Feature",
+      "Feature",
+      "Feature",
+      "Feature",
+      "Feature",
+      "Feature",
+      "Constant"
+    ],
+    "n_runs": 1,
+    "pop_size": 32,
+    "max_gens": 10,
+    "seed": 42,
+    "scores": [
+      -363.7537695379853
+    ],
+    "mean": -363.7537695379853
+  },
+  "84e16a9c45caaae833d6816a7adb2c76": {
+    "internal_nodes": [
+      "Plus",
+      "Minus",
+      "Times",
+      "Sqrt",
+      "Log",
+      "Sin",
+      "Max",
+      "Tanh"
+    ],
+    "leaf_nodes": [
+      "Feature",
+      "Feature",
+      "Feature",
+      "Feature",
+      "Feature",
+      "Feature",
+      "Feature",
+      "Feature",
+      "Constant"
+    ],
+    "n_runs": 10,
+    "pop_size": 32,
+    "max_gens": 10,
+    "seed": 42,
+    "scores": [
+      -438.66837039712533,
+      -390.0759894468044,
+      -250.20374559643744,
+      56.33123294573744,
+      399.4348458392095,
+      -299.0685430338962,
+      49.44890799835861,
+      -148.8780585759492,
+      -178.27918618187465,
+      -492.5910933898882
+    ],
+    "mean": -169.25499998386698
+  },
+  "dbb3e4c778feb61cd65c58969f6e5ca8": {
+    "internal_nodes": [
+      "Plus",
+      "Minus",
+      "Times",
+      "Sqrt",
+      "Log",
+      "Tanh",
+      "Max"
+    ],
+    "leaf_nodes": [
+      "Feature",
+      "Feature",
+      "Feature",
+      "Feature",
+      "Feature",
+      "Feature",
+      "Feature",
+      "Feature",
+      "Constant"
+    ],
+    "n_runs": 10,
+    "pop_size": 32,
+    "max_gens": 10,
+    "seed": 42,
+    "scores": [
+      -47.6316595913311,
+      -486.39972468768934,
+      -124.26735224271907,
+      129.51674620396864,
+      -365.9470848016118,
+      -363.6901829346391,
+      -210.3563027613734,
+      -279.3392472541552,
+      -326.7872820934505,
+      -474.06330439340104
+    ],
+    "mean": -254.89653945564024
+  },
+  "7be8bc6154a0fd964e5451f7ff7fe647": {
+    "internal_nodes": [
+      "Plus",
+      "Minus",
+      "Times",
+      "Sqrt",
+      "Log",
+      "Sin",
+      "Max",
+      "Abs"
+    ],
+    "leaf_nodes": [
+      "Feature",
+      "Feature",
+      "Feature",
+      "Feature",
+      "Feature",
+      "Feature",
+      "Feature",
+      "Feature",
+      "Constant"
+    ],
+    "n_runs": 10,
+    "pop_size": 32,
+    "max_gens": 10,
+    "seed": 42,
+    "scores": [
+      -257.22020326415367,
+      -280.9631944825265,
+      -373.9514575465656,
+      -254.06034463484534,
+      -371.396811940256,
+      -771.5640994468957,
+      -372.7752858241264,
+      -427.39802253150805,
+      105.80243971910517,
+      -797.0553177289017
+    ],
+    "mean": -380.0582297680674
+  },
+  "3a4b555c346d737908e8145ad3ca3713": {
+    "internal_nodes": [
+      "Plus",
+      "Minus",
+      "Times",
+      "Sqrt",
+      "Log",
+      "Sin",
+      "Max",
+      "IfGt"
+    ],
+    "leaf_nodes": [
+      "Feature",
+      "Feature",
+      "Feature",
+      "Feature",
+      "Feature",
+      "Feature",
+      "Feature",
+      "Feature",
+      "Constant"
+    ],
+    "n_runs": 10,
+    "pop_size": 32,
+    "max_gens": 10,
+    "seed": 42,
+    "scores": [
+      -256.99414783640293,
+      -322.0953508804013,
+      -384.59350104589754,
+      -268.7628398342096,
+      -364.5050810746038,
+      -374.98372008252176,
+      -318.7806890978152,
+      -293.438915921651,
+      -295.56236840094994,
+      -501.94642868272024
+    ],
+    "mean": -338.1663042857173
+  },
+  "d6b71255a71907f4ae24cff086af077c": {
+    "internal_nodes": [
+      "Plus",
+      "Minus",
+      "Times",
+      "Sqrt",
+      "Log",
+      "Sin",
+      "Max",
+      "Tanh",
+      "IfGt",
+      "Abs"
+    ],
+    "leaf_nodes": [
+      "Feature",
+      "Feature",
+      "Feature",
+      "Feature",
+      "Feature",
+      "Feature",
+      "Feature",
+      "Feature",
+      "Constant"
+    ],
+    "n_runs": 10,
+    "max_tree_size": 50,
+    "pop_size": 32,
+    "max_gens": 10,
+    "seed": 42,
+    "scores": [
+      -446.65974762613075,
+      -797.0026555979659,
+      -1028.3880835919442,
+      435.2222387506408,
+      -192.8134343424352,
+      -276.13684282530875,
+      -663.6205881104742,
+      -553.2510272843923,
+      -1017.1183876667693,
+      -1026.7754135605073
+    ],
+    "mean": -556.6543941855286
+  },
+  "6477d9e1d8b8219aa88e13daeb8bc61e": {
+    "internal_nodes": [
+      "Plus",
+      "Minus",
+      "Times",
+      "Sqrt",
+      "Log",
+      "Sin",
+      "Max",
+      "IfGt",
+      "Abs"
+    ],
+    "leaf_nodes": [
+      "Feature",
+      "Feature",
+      "Feature",
+      "Feature",
+      "Feature",
+      "Feature",
+      "Feature",
+      "Feature",
+      "Constant"
+    ],
+    "n_runs": 10,
+    "max_tree_size": 50,
+    "pop_size": 32,
+    "max_gens": 10,
+    "seed": 42,
+    "scores": [
+      -791.0570137118285,
+      -983.5816959758682,
+      61.53119354853152,
+      -1031.3977053694748,
+      -879.7781420153975,
+      58.34565106906018,
+      -451.54479306212045,
+      -785.2022940566131,
+      -979.5504795545477,
+      -1038.4674831250213
+    ],
+    "mean": -682.0702762253279
+  }
+}

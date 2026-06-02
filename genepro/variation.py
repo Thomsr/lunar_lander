@@ -9,11 +9,84 @@ from genepro.multitree import Multitree
 from genepro.node import Node
 from genepro.node_impl import Constant
 
-def generate_random_multitree(n_trees : int, internal_nodes : list, leaf_nodes : list, max_depth : int):
+def generate_random_multitree(n_trees : int, internal_nodes : list, leaf_nodes : list, max_depth : int, mode: str="biased", ramped: bool=False, min_depth: int=2):
+  """
+  Generate a Multitree containing `n_trees` randomly-generated trees.
+
+  Parameters
+  ----------
+  mode : str
+    one of "biased" (the original probabilistic grow), "full" (full method),
+    or "grow" (uniform grow). When `ramped` is True this parameter is ignored
+    and a mixed schedule is used instead.
+  ramped : bool
+    whether to use a ramped half-and-half schedule across depths and methods.
+  min_depth : int
+    minimal depth to use when `ramped` is True.
+  """
   multitree = Multitree(n_trees)
-  for _ in range(n_trees):
-    multitree.children.append(generate_random_tree(internal_nodes, leaf_nodes, max_depth, curr_depth=0))
+  if not ramped:
+    for _ in range(n_trees):
+      if mode == "biased" or mode == "grow":
+        multitree.children.append(generate_random_tree(internal_nodes, leaf_nodes, max_depth, curr_depth=0))
+      elif mode == "full":
+        multitree.children.append(generate_full_tree(internal_nodes, leaf_nodes, max_depth, curr_depth=0))
+      else:
+        raise ValueError(f"Unrecognized mode: {mode}")
+    return multitree
+
+  # ramped half-and-half: cycle through depths and alternate full/grow
+  depths = list(range(min_depth, max_depth+1)) if max_depth >= min_depth else [max_depth]
+  cycle_len = len(depths)
+  for i in range(n_trees):
+    d = depths[i % cycle_len]
+    use_full = ((i // cycle_len) % 2) == 0
+    if use_full:
+      node = generate_full_tree(internal_nodes, leaf_nodes, d, curr_depth=0)
+    else:
+      node = generate_grow_tree(internal_nodes, leaf_nodes, d, curr_depth=0)
+    multitree.children.append(node)
   return multitree
+
+def generate_full_tree(internal_nodes : list, leaf_nodes : list, max_depth : int, curr_depth : int=0):
+  """
+  Recursive method to generate a tree using the full initialization method.
+
+  Full trees use internal nodes until the maximum depth is reached, and only then
+  place leaf nodes.
+  """
+  if curr_depth == max_depth or len(internal_nodes) == 0:
+    n = deepcopy(randc(leaf_nodes))
+  else:
+    n = deepcopy(randc(internal_nodes))
+
+  for _ in range(n.arity):
+    c = generate_full_tree(internal_nodes, leaf_nodes, max_depth, curr_depth+1)
+    n.insert_child(c)
+
+  n.get_readable_repr()
+
+  return n
+
+def generate_grow_tree(internal_nodes : list, leaf_nodes : list, max_depth : int, curr_depth : int=0):
+  """
+  Recursive method to generate a tree using the grow initialization method.
+
+  Grow trees may choose either internal nodes or leaf nodes at any depth, but
+  must stop at the maximum depth.
+  """
+  if curr_depth == max_depth or len(internal_nodes) == 0 or randu() < 0.5:
+    n = deepcopy(randc(leaf_nodes))
+  else:
+    n = deepcopy(randc(internal_nodes))
+
+  for _ in range(n.arity):
+    c = generate_grow_tree(internal_nodes, leaf_nodes, max_depth, curr_depth+1)
+    n.insert_child(c)
+
+  n.get_readable_repr()
+
+  return n
 
 def generate_random_tree(internal_nodes : list, leaf_nodes : list, max_depth : int, curr_depth : int=0):
   """
@@ -37,7 +110,10 @@ def generate_random_tree(internal_nodes : list, leaf_nodes : list, max_depth : i
   """
 
   # heuristic to generate a semi-normal centered on relatively large trees
-  prob_leaf = 0.01 + (curr_depth / max_depth)**3
+  if max_depth == 0:
+    prob_leaf = 1.0
+  else:
+    prob_leaf = 0.01 + (curr_depth / max_depth)**3
 
   if curr_depth == max_depth or randu() < prob_leaf:
     n = deepcopy(randc(leaf_nodes))

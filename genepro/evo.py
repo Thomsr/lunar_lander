@@ -13,6 +13,14 @@ from genepro.node import Node
 from genepro.variation import *
 from genepro.selection import tournament_selection
 
+def _seeded_generate_random_multitree(seed, *args, **kwargs):
+  np.random.seed(seed)
+  return generate_random_multitree(*args, **kwargs)
+
+def _seeded_generate_offspring(seed, *args, **kwargs):
+    np.random.seed(seed)
+    return generate_offspring(*args, **kwargs)
+
 class Evolution:
   """
   Class concerning the overall evolution process.
@@ -66,6 +74,9 @@ class Evolution:
 
   elite_archive_size : int, optional
     size of the elite archive to maintain (default is 0, no archive); set > 0 to enable elitist selection
+  init_method : str, optional
+    initialization strategy to use for the starting population; either "ramped_half_and_half"
+    (default) or "random"
 
   Attributes
   ----------
@@ -114,6 +125,8 @@ class Evolution:
     n_jobs : int=4,
     verbose : bool=False,
     elite_archive_size : int=8,
+    seed : int=42,
+    init_method : str="biased",
     ):
 
     # set parameters as attributes
@@ -138,8 +151,30 @@ class Evolution:
     self.start_time, self.elapsed_time = 0, 0
     self.best_of_gens = list()
     self.elite_archive = list()  # archive for elite individuals
+    self.seed = int(seed)
 
     self.memory = None
+
+  def _build_ramped_half_and_half_schedule(self):
+    """
+    Builds a population-wide ramped half-and-half schedule.
+
+    The schedule distributes the population across all depths from 0 to
+    `init_max_depth`, with half of the individuals at each depth generated using
+    the full method and the other half using the grow method.
+    """
+    buckets = [(depth, mode) for depth in range(self.init_max_depth + 1) for mode in ("full", "grow")]
+    if len(buckets) == 0:
+      return []
+
+    base, remainder = divmod(self.pop_size, len(buckets))
+    schedule = []
+    for i, bucket in enumerate(buckets):
+      count = base + (1 if i < remainder else 0)
+      schedule.extend([bucket] * count)
+
+    shuffle(schedule)
+    return schedule
 
 
   def _update_elite_archive(self, candidates):
@@ -202,14 +237,25 @@ class Evolution:
     Generates a random initial population and evaluates it
     """
     # initialize the population
-    self.population = Parallel(n_jobs=self.n_jobs)(
-        delayed(generate_random_multitree)(self.n_trees, 
-          self.internal_nodes, self.leaf_nodes, max_depth=self.init_max_depth )
-        for _ in range(self.pop_size))
+    if self.init_method == "ramped_half_and_half":
+        init_schedule = self._build_ramped_half_and_half_schedule()
+        # schedule contains tuples (depth, mode) where mode is 'full' or 'grow'
+        self.population = Parallel(n_jobs=self.n_jobs)(
+            delayed(_seeded_generate_random_multitree)(self.seed + idx, self.n_trees,
+              self.internal_nodes, self.leaf_nodes, max_depth=depth,
+              mode=("full" if mode == "full" else "grow"))
+            for idx, (depth, mode) in enumerate(init_schedule))
+    elif self.init_method in ("random", "biased", "grow", "full"):
+        mode = self.init_method if self.init_method in ("grow", "full") else "biased"
+        self.population = Parallel(n_jobs=self.n_jobs)(
+            delayed(_seeded_generate_random_multitree)(self.seed + idx, self.n_trees,
+              self.internal_nodes, self.leaf_nodes, max_depth=self.init_max_depth, mode=mode)
+            for idx in range(self.pop_size))
+    else:
+        raise ValueError("Unrecognized init_method: {}".format(self.init_method))
 
     for count, individual in enumerate(self.population):
       individual.get_readable_repr()
-
     # evaluate the trees and store their fitness
     fitnesses = Parallel(n_jobs=self.n_jobs)(delayed(self.fitness_function)(t) for t in self.population)
     fitnesses = list(map(list, zip(*fitnesses)))
@@ -241,11 +287,11 @@ class Evolution:
     sel_fun = self.selection["fun"]
     parents = sel_fun(selection_pool, self.pop_size, **self.selection["kwargs"])
     # generate offspring
-    offspring_population = Parallel(n_jobs=self.n_jobs)(delayed(generate_offspring)
-      (t, self.crossovers, self.mutations, self.coeff_opts, 
+    offspring_population = Parallel(n_jobs=self.n_jobs)(delayed(_seeded_generate_offspring)
+      (self.seed + self.num_evals + idx, t, self.crossovers, self.mutations, self.coeff_opts, 
       parents, self.internal_nodes, self.leaf_nodes,
       constraints={"max_tree_size": self.max_tree_size}) 
-      for t in parents)
+      for idx, t in enumerate(parents))
 
     # evaluate each offspring and store its fitness 
     fitnesses = Parallel(n_jobs=self.n_jobs)(delayed(self.fitness_function)(t) for t in offspring_population)
