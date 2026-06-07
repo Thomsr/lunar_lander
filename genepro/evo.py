@@ -180,7 +180,7 @@ class Evolution:
   def _update_elite_archive(self, candidates):
     """
     Updates the elite archive with promising candidates.
-    
+
     Parameters
     ----------
     candidates : list
@@ -188,11 +188,11 @@ class Evolution:
     """
     if self.elite_archive_size <= 0:
       return
-    
+
     # Add new candidates to archive
     for individual in candidates:
       self.elite_archive.append(deepcopy(individual))
-    
+
     # Sort by fitness (descending - higher is better) and keep top elite_archive_size
     self.elite_archive.sort(key=lambda x: x.fitness, reverse=True)
     self.elite_archive = self.elite_archive[:self.elite_archive_size]
@@ -272,7 +272,7 @@ class Evolution:
     parents = sel_fun(selection_pool, self.pop_size, **self.selection["kwargs"])
     # generate offspring
     offspring_population = Parallel(n_jobs=self.n_jobs)(delayed(_seeded_generate_offspring)
-      (self.seed + self.num_evals + idx, t, self.crossovers, self.mutations, self.coeff_opts, 
+      (self.seed + self.num_evals + idx, t, self.crossovers, self.mutations, self.coeff_opts,
       parents, self.internal_nodes, self.leaf_nodes,
       constraints={"max_tree_size": self.max_tree_size}) 
       for idx, t in enumerate(parents))
@@ -293,16 +293,16 @@ class Evolution:
       offspring_population[i].fitness = fitnesses[i]
     # store cost
     self.num_evals += self.pop_size
-    
+
     if self.elite_archive_size > 0 and len(self.elite_archive) > 0:
       combined = offspring_population + self.elite_archive
       combined.sort(key=lambda x: x.fitness, reverse=True)
       self.population = combined[:self.pop_size]
     else:
       self.population = offspring_population
-    
+
     self._update_elite_archive(self.population)
-    
+
     self.num_gens += 1
     best = self.population[np.argmax([t.fitness for t in self.population])]
     self.best_of_gens.append(deepcopy(best))
